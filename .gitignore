@@ -1,0 +1,17 @@
+._*
+.DS_Store
+.codekit-cache
+.env
+.eslintcache
+.npm
+.nyc_output
+.sass-cache
+.yarn-integrity
+
+newrelic.js
+node_modules/*
+
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*

@@ -1,0 +1,18 @@
+[Unit]
+Description=Dynamic DNS Server
+After=syslog.target network.target
+
+[Service]
+ExecStart=/usr/bin/node /opt/dns/server.js
+EnvironmentFile=-/usr/local/etc/dns.env
+Restart=always
+StandardOutput=syslog
+StandardError=syslog
+SyslogIdentifier=dyndns
+Type=simple
+User=nginx
+Group=nginx
+Environment=NODE_ENV=production
+
+[Install]
+WantedBy=multi-user.target
