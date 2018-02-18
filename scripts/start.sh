@@ -1,3 +1,3 @@
 #!/bin/bash
-
-systemctl start dns.service
+systemctl start dyndns.service
+exit 0

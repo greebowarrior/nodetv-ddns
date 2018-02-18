@@ -8,7 +8,11 @@ server {
 	
 	server_name dns.silico.media;
 	location / {
-		return 302 https://$host$request_uri;
+		return 302 https://$server_name$request_uri;
+	}
+	location ^~ /.well-known/acme-challenge/ {
+		default_type "text/plain";
+		root /var/www/letsencrypt;
 	}
 }
 

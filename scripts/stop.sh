@@ -1,3 +1,3 @@
 #!/bin/bash
 
-systemctl stop dns.service
+systemctl stop dyndns.service

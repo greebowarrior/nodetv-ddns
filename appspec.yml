@@ -3,20 +3,17 @@ os: linux
 files:
   - source: /
     destination: /opt/dns
-  - source: /scripts/dyndns.service
+  - source: scripts/dyndns.service
     destination: /etc/systemd/system
-  - source: /scripts/dns.conf
+  - source: scripts/dns.silico.media
     destination: /etc/nginx/sites-enabled
 hooks:
-  BeforeInstall:
+  AfterInstall:
     - location: scripts/install.sh
-      timeout: 300
       runas: root
   ApplicationStart:
     - location: scripts/start.sh
-      timeout: 300
       runas: root
   ApplicationStop:
     - location: scripts/stop.sh
-      timeout: 300
       runas: root
