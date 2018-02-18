@@ -10,6 +10,10 @@ const userSchema = mongoose.Schema({
 		v4: String,
 		v6: String
 	},
+	domains: [{
+		domain: {type: mongoose.Schema.Types.ObjectId, ref:'Domain'},
+		fqdn: String
+	}],
 	created: {type: Date, default: new Date()},
 	updated: {type: Date, default: new Date()}
 })

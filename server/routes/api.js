@@ -43,7 +43,7 @@ const API = (app)=>{
 		.get((req,res)=>{
 			res.send({message:'hello'})
 		})
-		.post(passport.authenticate('token',{session:false}), (req,res)=>{
+		.post(passport.authenticate('token'), (req,res)=>{
 			User.findById(req.user._id)
 				.then(user=>{
 					if (!user) throw new Error(`User not found`)
@@ -66,12 +66,20 @@ const API = (app)=>{
 				})
 		})
 	
-	// DynDNS2 protocol compatibility for ddclient
+	// No-IP/DynDNS2 protocol compatibility for ddclient
+	
 	app.route('/nic/update')
-		.all(passport.authenticate('basic',{session:false,failureFlash:'badauth'}), (req,res)=>{
+		.get(passport.authenticate('basic'),(req,res)=>{
+			if (!req.user) return res.status(401).send('badauth')
+			
 			User.findById(req.user._id)
 				.then(user=>{
+					if (!user) throw new Error(`Invalid User`)
+					
+					// TODO: Add full IPv6 support
+					
 					user.addresses['v4'] = req.query.myip
+					
 					if (req.headers['x-forwarded-for'].match(/^([0-9a-f]{4}\:)/i)){
 						user.addresses['v6'] = req.headers['x-forwarded-for']	
 					}
@@ -125,5 +133,7 @@ const API = (app)=>{
 			}
 		})
 }
+
+
 
 module.exports = API

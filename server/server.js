@@ -24,7 +24,7 @@ passport.use('basic', new BasicStrategy((username,token,done)=>{
 			done(null, user)
 		})
 		.catch(error=>{
-			done(error, false)
+			done(error, false, 'badauth')
 		})
 }))
 passport.use('token', new TokenStrategy((username,token,done)=>{
@@ -44,7 +44,6 @@ app.use(require('body-parser').json())
 app.use(require('body-parser').urlencoded({'extended':true}))
 
 app.use(require('compression')())
-app.use(require('connect-flash')())
 app.use(require('helmet')())
 
 app.enable('trust proxy')
@@ -54,14 +53,6 @@ app.disable('x-powered-by')
 app.listen(8053, ()=>{
 	console.info('Listening on port 8053')
 })
-
-const session =  require('express-session')({
-	resave: false,
-	saveUninitialized: true,
-	secret: process.env.SECRET_KEY
-})
-app.use(session)
-
 passport.serializeUser((user,done)=>{
 	done(null, user._id)
 })
@@ -76,7 +67,6 @@ passport.deserializeUser((id,done)=>{
 })
 
 app.use(passport.initialize())
-app.use(passport.session())
 
 require('./database')
 require('./routes/api')(app)
