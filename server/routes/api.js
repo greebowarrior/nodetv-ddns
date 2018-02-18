@@ -66,13 +66,18 @@ const API = (app)=>{
 				})
 		})
 	
-	// DynDNS2 protocol compatibility
+	// DynDNS2 protocol compatibility for ddclient
 	app.route('/nic/update')
 		.all(passport.authenticate('basic',{session:false,failureFlash:'badauth'}), (req,res)=>{
 			User.findById(req.user._id)
 				.then(user=>{
-					user.addresses['v4'] = req.params.myip
-					return UpdateDNS(user.subdomain, user.addresses)
+					user.addresses['v4'] = req.query.myip
+					if (req.headers['x-forwarded-for'].match(/^([0-9a-f]{4}\:)/i)){
+						user.addresses['v6'] = req.headers['x-forwarded-for']	
+					}
+					return UpdateDNS(user.subdomain, user.addresses).then(()=>{
+						return user.save()
+					})
 				})
 				.then(()=>{
 					res.status(200).send('good')

@@ -28,7 +28,7 @@ passport.use('basic', new BasicStrategy((username,token,done)=>{
 		})
 }))
 passport.use('token', new TokenStrategy((username,token,done)=>{
-	User.findOne({username:username,token:token})
+	User.findOne({username:username,token:token}).exec()
 		.then(user=>{
 			if (!user) throw new Error('Invalid user')
 			done(null, user)
