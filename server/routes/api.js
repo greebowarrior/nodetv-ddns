@@ -28,8 +28,8 @@ const UpdateDNS = (subdomain,ips)=>{
 		})
 		
 		R53.changeResourceRecordSets({
-			'HostedZoneId':'Z26V229YF36UHL',
-			'ChangeBatch':{'Changes': changes}
+			'HostedZoneId': process.env.AWS_HOSTED_ZONE_ID,
+			'ChangeBatch': {'Changes':changes}
 		}, function(error, json){
 			if (error) return reject(error)
 			if (json) resolve(json)
@@ -43,7 +43,7 @@ const API = (app)=>{
 		.get((req,res)=>{
 			res.send({message:'hello'})
 		})
-		.post(passport.authenticate('token'), (req,res)=>{
+		.post(passport.authenticate('token',{session:false}), (req,res)=>{
 			User.findById(req.user._id)
 				.then(user=>{
 					if (!user) throw new Error(`User not found`)
@@ -53,8 +53,7 @@ const API = (app)=>{
 					})
 					
 					return UpdateDNS(user.subdomain, user.addresses)
-						.then(json=>{
-							console.debug(json)
+						.then(()=>{
 							return user.save()
 						})
 				})
@@ -64,6 +63,23 @@ const API = (app)=>{
 				.catch(error=>{
 					console.error(error)
 					res.status(401).send({error: 'Unauthorized'})
+				})
+		})
+	
+	// DynDNS2 protocol compatibility
+	app.route('/nic/update')
+		.all(passport.authenticate('basic',{session:false,failureFlash:'badauth'}), (req,res)=>{
+			User.findById(req.user._id)
+				.then(user=>{
+					user.addresses['v4'] = req.params.myip
+					return UpdateDNS(user.subdomain, user.addresses)
+				})
+				.then(()=>{
+					res.status(200).send('good')
+				})
+				.catch(error=>{
+					if (error) console.error(error.message)
+					res.status(200).send('badauth')
 				})
 		})
 	

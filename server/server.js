@@ -14,10 +14,21 @@ AWS.config.update({
 const User = require('./models/user')
 
 const passport = require('passport')
+const BasicStrategy = require('passport-http').BasicStrategy
 const TokenStrategy = require('passport-token').Strategy
 
+passport.use('basic', new BasicStrategy((username,token,done)=>{
+	User.findOne({username:username,token:token}).exec()
+		.then(user=>{
+			if (!user) throw new Error(`Invalid User`)
+			done(null, user)
+		})
+		.catch(error=>{
+			done(error, false)
+		})
+}))
 passport.use('token', new TokenStrategy((username,token,done)=>{
-	User.findOne({username:username,'token':token})
+	User.findOne({username:username,token:token})
 		.then(user=>{
 			if (!user) throw new Error('Invalid user')
 			done(null, user)
@@ -27,19 +38,18 @@ passport.use('token', new TokenStrategy((username,token,done)=>{
 		})
 }))
 
-
 const app = require('express')()
 
 app.use(require('body-parser').json())
 app.use(require('body-parser').urlencoded({'extended':true}))
 
 app.use(require('compression')())
+app.use(require('connect-flash')())
 app.use(require('helmet')())
 
 app.enable('trust proxy')
 app.disable('view cache')
 app.disable('x-powered-by')
-
 
 app.listen(8053, ()=>{
 	console.info('Listening on port 8053')
@@ -48,7 +58,7 @@ app.listen(8053, ()=>{
 const session =  require('express-session')({
 	resave: false,
 	saveUninitialized: true,
-	secret: 'Explosive-Eastern-Cattle-Prod'
+	secret: process.env.SECRET_KEY
 })
 app.use(session)
 

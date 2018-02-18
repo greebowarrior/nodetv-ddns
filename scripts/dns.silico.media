@@ -5,7 +5,7 @@ upstream dyndns {
 server {
 	listen 80;
 	listen [::]:80;
-	
+	  
 	server_name dns.silico.media;
 	location / {
 		return 302 https://$server_name$request_uri;
@@ -24,7 +24,6 @@ server {
 	
 	include /etc/nginx/letsencrypt.conf;
 	
-	ssl on;
 	ssl_certificate /etc/letsencrypt/live/dns.silico.media/fullchain.pem; # managed by Certbot
 	ssl_certificate_key /etc/letsencrypt/live/dns.silico.media/privkey.pem; # managed by Certbot
 	
