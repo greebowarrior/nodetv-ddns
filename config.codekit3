@@ -110,12 +110,42 @@
 		"sC": 3,
 		"tS": 0
 		},
+	"\/server\/app.js": {
+		"ft": 64,
+		"ma": 0,
+		"mi": 0,
+		"oA": 1,
+		"oAP": "\/server\/min\/app.min.js",
+		"oF": 0,
+		"sC": 3,
+		"tS": 0
+		},
+	"\/server\/auth.js": {
+		"ft": 64,
+		"ma": 0,
+		"mi": 0,
+		"oA": 1,
+		"oAP": "\/server\/min\/auth.min.js",
+		"oF": 0,
+		"sC": 3,
+		"tS": 0
+		},
 	"\/server\/database.js": {
 		"ft": 64,
 		"ma": 0,
 		"mi": 0,
 		"oA": 1,
 		"oAP": "\/server\/min\/database.min.js",
+		"oF": 0,
+		"sC": 3,
+		"tS": 0
+		},
+	"\/server\/models\/domain.js": {
+		"ft": 64,
+		"ma": 0,
+		"mi": 0,
+		"oA": 1,
+		"oAP": "\/server\/models\/min\/domain.min.js",
 		"oF": 0,
 		"sC": 3,
 		"tS": 0
@@ -130,12 +160,12 @@
 		"sC": 3,
 		"tS": 0
 		},
-	"\/server\/routes\/api.js": {
+	"\/server\/routes\/index.js": {
 		"ft": 64,
 		"ma": 0,
 		"mi": 0,
 		"oA": 1,
-		"oAP": "\/server\/routes\/min\/api.min.js",
+		"oAP": "\/server\/routes\/min\/index.min.js",
 		"oF": 0,
 		"sC": 3,
 		"tS": 0

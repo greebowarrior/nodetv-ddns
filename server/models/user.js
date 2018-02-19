@@ -3,15 +3,16 @@
 const mongoose = require('mongoose')
 
 const userSchema = mongoose.Schema({
-	username: {type: String, required: true, unique: true},
-	subdomain: String,
+	username: {type:String, required:true, unique:true},
 	token: String,
+	
+	subdomain: String,
 	addresses: {
 		v4: String,
 		v6: String
 	},
 	domains: [{
-		domain: {type: mongoose.Schema.Types.ObjectId, ref:'Domain'},
+		domain: {type:mongoose.Schema.Types.ObjectId, ref:'Domain'},
 		fqdn: String
 	}],
 	created: {type: Date, default: new Date()},
