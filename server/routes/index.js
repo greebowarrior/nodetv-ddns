@@ -76,18 +76,21 @@ const API = (app)=>{
 				.then(user=>{
 					if (!user) throw new Error(`Invalid User`)
 					
-				//	let type = req.query.myip.match(/^([0-9a-f]{4}\:)/i) ? 'v6' : 'v4'
-				//	user.addresses[type] = req.query.myip
-					
-					user.addresses['v4'] = req.query.myip
-					if (req.headers['x-forwarded-for'].match(/^([0-9a-f]{4}\:)/i)){
-						// If a v4 address is sent over v6, also set a v6 record
-						user.addresses['v6'] = req.headers['x-forwarded-for']	
+					if (req.query.myip.match(/^([0-9a-f]{4}\:)/i)){
+						// IPv6
+						user.addresses['v6'] = req.query.myip
+					} else {
+						// IPv4
+						user.addresses['v4'] = req.query.myip
 					}
 					
-					return UpdateDNS(user.subdomain, user.addresses).then(()=>{
-						return user.save()
-					})
+					if (user.address.length){
+						return UpdateDNS(user.subdomain, user.addresses).then(()=>{
+							return user.save()
+						})
+					} else {
+						return Promise.resolve()
+					}
 				})
 				.then(()=>{
 					res.status(200).send('good')
