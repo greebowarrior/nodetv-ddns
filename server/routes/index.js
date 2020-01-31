@@ -11,9 +11,12 @@ const UpdateDNS = (subdomain,ips)=>{
 	return new Promise((resolve,reject)=>{
 		let changes = []
 		
+		let CF = require('cloudflare')({token:process.env.CF_API_TOKEN})
+		
 		Object.keys(ips).forEach(key=>{
 			if (!ips[key] || ['v4','v6'].indexOf(key) == -1) return
 			
+			// AWS
 			changes.push({
 				'Action': 'UPSERT',
 				'ResourceRecordSet': {
@@ -24,6 +27,14 @@ const UpdateDNS = (subdomain,ips)=>{
 						'Value': ips[key]
 					}]
 				}
+			})
+			
+			// Cloudflare (alpha)
+			CF.zones.edit(process.env.CF_ZONE_ID, {
+				type: (key == 'v6') ? 'AAAA' : 'A',
+				name: subdomain,
+				content: ips[key],
+				proxied: true
 			})
 		})
 		
