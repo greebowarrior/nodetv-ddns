@@ -2,49 +2,53 @@
 
 const passport = require('passport')
 
-const AWS = require('aws-sdk')
-const R53 = new AWS.Route53()
-
+const CF = require('cloudflare')({token:process.env.CF_API_TOKEN})
 const User = require('../models/user')
 
 const UpdateDNS = (subdomain,ips)=>{
-	return new Promise((resolve,reject)=>{
-		let changes = []
+	return new Promise(resolve=>{
 		
-		let CF = require('cloudflare')({token:process.env.CF_API_TOKEN})
 		
-		Object.keys(ips).forEach(key=>{
-			if (!ips[key] || ['v4','v6'].indexOf(key) == -1) return
+		CF.dnsRecords.browse(process.env.CF_ZONE_ID).then(response=>{
 			
-			// AWS
-			changes.push({
-				'Action': 'UPSERT',
-				'ResourceRecordSet': {
-					'Name': subdomain+'.rent-a-cunt.com.',
-					'Type': (key == 'v6') ? 'AAAA' : 'A',
-					'TTL': 300,
-					'ResourceRecords': [{
-						'Value': ips[key]
-					}]
-				}
+			let records = response.result.filter(item=>{
+				if (item.name == subdomain + '.rent-a-cunt.com') return true
 			})
 			
-			// Cloudflare (alpha)
-			CF.zones.edit(process.env.CF_ZONE_ID, {
-				type: (key == 'v6') ? 'AAAA' : 'A',
-				name: subdomain,
-				content: ips[key],
-				proxied: true
-			})
+			if (records.length){
+				// Update record(s)
+				records.forEach(record=>{
+					let ip = ''
+					
+					if (record.type == 'AAAA'){
+						ip = ips.v6
+					} else if (record.type == 'A'){
+						ip = ips.v4
+					}
+					
+					CF.dnsRecords.edit(process.env.CF_ZONE_ID, record.id, {
+						name: subdomain + '.rent-a-cunt.com',
+						type: record.type,
+						content: ip,
+						proxied: true
+					})
+				})
+				
+			} else {
+				// Create record(s)
+				Object.keys(ips).forEach(key=>{
+					if (!ips[key] || ['v4','v6'].indexOf(key) == -1) return
+					
+					CF.dnsRecords.add(process.env.CF_ZONE_ID, {
+						name: subdomain + '.rent-a-cunt.com',
+						type: (key == 'v6') ? 'AAAA' : 'A',
+						content: ips[key],
+						proxied: true
+					})
+				})
+			}
 		})
-		
-		R53.changeResourceRecordSets({
-			'HostedZoneId': process.env.AWS_HOSTED_ZONE_ID,
-			'ChangeBatch': {'Changes':changes}
-		}, function(error, json){
-			if (error) return reject(error)
-			if (json) resolve(json)
-		})
+		resolve()
 	})
 }
 
@@ -95,7 +99,7 @@ const API = (app)=>{
 						user.addresses['v4'] = req.query.myip
 					}
 					
-					if (user.address.length){
+					if (user.addresses){
 						return UpdateDNS(user.subdomain, user.addresses).then(()=>{
 							return user.save()
 						})
