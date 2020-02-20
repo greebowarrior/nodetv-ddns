@@ -8,11 +8,13 @@ const User = require('../models/user')
 const UpdateDNS = (subdomain,ips)=>{
 	return new Promise(resolve=>{
 		
-		
 		CF.dnsRecords.browse(process.env.CF_ZONE_ID).then(response=>{
 			
+			let zone_name = null
+			
 			let records = response.result.filter(item=>{
-				if (item.name == subdomain + '.rent-a-cunt.com') return true
+				if (!zone_name) zone_name == item.zone_name
+				if (item.name == `${subdomain}.${item.zone_name}`) return true
 			})
 			
 			if (records.length){
@@ -27,7 +29,7 @@ const UpdateDNS = (subdomain,ips)=>{
 					}
 					
 					CF.dnsRecords.edit(process.env.CF_ZONE_ID, record.id, {
-						name: subdomain + '.rent-a-cunt.com',
+						name: `${subdomain}.${record.zone_name}`,
 						type: record.type,
 						content: ip,
 						proxied: true
@@ -40,7 +42,7 @@ const UpdateDNS = (subdomain,ips)=>{
 					if (!ips[key] || ['v4','v6'].indexOf(key) == -1) return
 					
 					CF.dnsRecords.add(process.env.CF_ZONE_ID, {
-						name: subdomain + '.rent-a-cunt.com',
+						name: `${subdomain}.${zone_name}`,
 						type: (key == 'v6') ? 'AAAA' : 'A',
 						content: ips[key],
 						proxied: true
@@ -82,7 +84,6 @@ const API = (app)=>{
 		})
 	
 	// No-IP/DynDNS2 protocol compatibility for ddclient
-	
 	app.route('/nic/update')
 		.get(passport.authenticate('basic'),(req,res)=>{
 			if (!req.user) return res.status(401).send('badauth')
@@ -114,43 +115,6 @@ const API = (app)=>{
 					if (error) console.error(error.message)
 					res.status(200).send('badauth')
 				})
-		})
-	
-	// Legacy mode
-	app.route('/api/update')
-		.post((req,res)=>{
-			let ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress
-			
-			if (ip.match(/^::ffff:/)){
-				var match = ip.match(/::ffff:(.*)$/)
-				ip = match[1]
-			}
-			
-			if (req.body.username){
-				User.findByUser(req.body.username)
-					.then(user=>{
-						if (!user) throw new Error(`User not found`)
-						
-						if (user.address == ip) return res.send({status:true})
-						
-						user.addresses['v4'] = ip
-						
-						return UpdateDNS(user.subdomain, user.addresses)
-							.then(json=>{
-								console.debug(json)
-								return user.save({new:true})
-							})
-					})
-					.then(()=>{
-						res.send({status:true})
-					})
-					.catch(error=>{
-						console.error(error)
-						res.status(401).end({error: 'Unauthorized'})
-					})
-			} else {
-				res.status(401).send({error: 'Unauthorized'})
-			}
 		})
 }
 
