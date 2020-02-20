@@ -3,10 +3,6 @@
 global.Promise = require('bluebird').Promise
 Promise.config({warnings:false})
 
-require('aws-sdk').config.update({
-	region: process.env.AWS_REGION
-})
-
 const app = require('express')()
 
 require('./database')
